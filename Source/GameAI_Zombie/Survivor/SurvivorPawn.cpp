@@ -88,9 +88,9 @@ bool ASurvivorPawn::IsRunning() const
 	return bIsRunning;
 }
 
-std::vector<FVector> ASurvivorPawn::CalculatePath(const FVector& TargetLocation) const
+TArray<FVector> ASurvivorPawn::CalculatePath(const FVector& TargetLocation) const
 {
-	std::vector<FVector> Path = {};
+	TArray<FVector> Path = {};
 	// 1. Get the Navigation System
 	UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 	if (!NavSys) return Path;
@@ -105,14 +105,11 @@ std::vector<FVector> ASurvivorPawn::CalculatePath(const FVector& TargetLocation)
 	if (NavPath && NavPath->IsValid())
 	{
 		// PathPoints is a TArray<FVector> representing each corner/node of the path
-		TArray<FVector> PathPoints = NavPath->PathPoints;
-		Path.reserve(PathPoints.Num());
-
-		for (const FVector& Point : PathPoints)
+		for (const FVector& Point : NavPath->PathPoints)
 		{
-			Path.emplace_back(Point);
 			// DrawDebugSphere(GetWorld(), Point, 20.0f, 8, FColor::Green, false, .0f);
 		}
+		return NavPath->PathPoints;
 	}
 
 	return Path;

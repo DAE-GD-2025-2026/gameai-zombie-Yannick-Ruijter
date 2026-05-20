@@ -11,7 +11,6 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "Perception/AISense_Damage.h"
-#include "vector"
 #include "SurvivorPawn.generated.h"
 
 class UInventoryComponent;
@@ -61,7 +60,7 @@ public:
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	std::vector<FVector> CalculatePath(const FVector& TargetLocation) const;
+	TArray<FVector> CalculatePath(const FVector& TargetLocation) const;
 	void StartRunning();
 	void StopRunning();
 	

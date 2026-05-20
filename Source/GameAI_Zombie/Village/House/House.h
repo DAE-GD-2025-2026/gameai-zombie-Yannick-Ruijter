@@ -6,8 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "House.generated.h"
 
-struct FHouseBounds
+USTRUCT(BlueprintType)
+struct GAMEAI_ZOMBIE_API FHouseBounds
 {
+	GENERATED_BODY()
+	
 	FVector Origin;
 	FVector Extent;
 };

@@ -38,7 +38,9 @@ public class RuijterYannickZombieRuntime : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"AIModule",
+				"AIModule", "GameAI_Zombie", 
+				"NavigationSystem",
+				
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

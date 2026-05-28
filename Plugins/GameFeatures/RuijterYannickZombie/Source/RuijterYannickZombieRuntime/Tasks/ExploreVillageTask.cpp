@@ -1,4 +1,4 @@
-#include "FindVillageTask.h"
+#include "ExploreVillageTask.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "NavigationSystem.h"
@@ -8,31 +8,25 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AIPerceptionTypes.h"
 
-UFindVillageTask::UFindVillageTask()
+UExploreVillageTask::UExploreVillageTask()
 {
-    bNotifyTick = true;
+	bNotifyTick = true;
 	NodeName = TEXT("Find Village");
 }
 
-EBTNodeResult::Type UFindVillageTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UExploreVillageTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	auto AIController = OwnerComp.GetAIOwner();
-	auto Survivor = AIController->GetPawn();
+	APawn* Survivor = OwnerComp.GetAIOwner()->GetPawn();
 	if (!Survivor) return EBTNodeResult::Failed;
 	CalculateRandomPoint(AIController);
-	StudentPerceptor = AIController->FindComponentByClass<UStudentPerceptor>();
-	if (!StudentPerceptor)
-	{
-		StudentPerceptor = NewObject<UStudentPerceptor>(AIController);
-		StudentPerceptor->SetOwner(AIController);
-		AIController->AddInstanceComponent(StudentPerceptor);
-		StudentPerceptor->RegisterComponent();
-	}
+	StudentPerceptor = NewObject<UStudentPerceptor>(this);
+
 	
 	return EBTNodeResult::InProgress;
 }
 
-void UFindVillageTask::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
+void UExploreVillageTask::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	auto AIController = OwnerComp.GetAIOwner();
 	APawn* Survivor = OwnerComp.GetAIOwner()->GetPawn();
@@ -43,12 +37,12 @@ void UFindVillageTask::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 	if (distanceSquared < 1000) CalculateRandomPoint(AIController);
 }
 
-FString UFindVillageTask::GetStaticDescription() const
+FString UExploreVillageTask::GetStaticDescription() const
 {
 	return FString::Printf(TEXT("Finds nearest village\nWrites to: blackboard"));
 }
 
-void UFindVillageTask::CalculateRandomPoint(AAIController* AIController)
+void UExploreVillageTask::CalculateRandomPoint(AAIController* AIController)
 {
 	auto NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
 	FNavLocation RandomLocation;

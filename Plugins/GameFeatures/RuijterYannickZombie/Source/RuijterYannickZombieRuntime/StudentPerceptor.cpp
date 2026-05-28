@@ -3,6 +3,8 @@
 
 #include "StudentPerceptor.h"
 
+#include "AIController.h"
+
 
 UStudentPerceptor::UStudentPerceptor()
 {
@@ -19,8 +21,18 @@ void UStudentPerceptor::BeginPlay()
 	}
 }
 
+void UStudentPerceptor::SetOwner(AAIController* owner)
+{
+	Controller = owner;
+}
+
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+	if (!Stimulus.WasSuccessfullySensed()) return;
+
+	auto Blackboard = Controller->GetBlackboardComponent();
+	if (!Blackboard) return;
+	
 	GEngine->AddOnScreenDebugMessage(5, 1.f, FColor::Green, 
-	FString::Printf(TEXT("Saw Something!")));
+	FString::Printf(TEXT("Saw Something! %s"), *Actor->GetName()));
 }

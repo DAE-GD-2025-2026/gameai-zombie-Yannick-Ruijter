@@ -5,20 +5,21 @@
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
 #include "RuijterYannickZombieRuntime/StudentPerceptor.h"
-#include "FindVillageTask.generated.h"
+#include "ExploreVillageTask.generated.h"
 
 UCLASS()
-class RUIJTERYANNICKZOMBIERUNTIME_API UFindVillageTask : public UBTTaskNode
+class RUIJTERYANNICKZOMBIERUNTIME_API UExploreVillageTask : public UBTTaskNode
 {
 	GENERATED_BODY()
 
 public:
-	UFindVillageTask();
+	UExploreVillageTask();
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
 	virtual FString GetStaticDescription() const override;
 protected:
 	FVector LastRandomPoint{};
-	UStudentPerceptor* StudentPerceptor;
+	UPROPERTY()
+	TObjectPtr<UStudentPerceptor> StudentPerceptor;
 	void CalculateRandomPoint(AAIController* AIController);
 };

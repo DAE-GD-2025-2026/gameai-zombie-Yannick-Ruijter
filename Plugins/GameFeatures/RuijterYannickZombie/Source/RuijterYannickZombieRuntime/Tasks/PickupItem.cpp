@@ -2,7 +2,9 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "NavigationSystem.h"
+#include "Common/InventoryComponent.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "Survivor/SurvivorPawn.h"
 
 UPickupItem::UPickupItem()
 {
@@ -14,6 +16,10 @@ EBTNodeResult::Type UPickupItem::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 {
 	auto AIController = OwnerComp.GetAIOwner();
 	auto BlackBoard = AIController->GetBlackboardComponent();
+	auto ItemToPickup = BlackBoard->GetValueAsObject("ItemToPickup");
+	int SlotIndex = BlackBoard->GetValueAsInt("ItemIndex");
+	auto Inventory = Cast<ASurvivorPawn>(AIController->GetPawn())->FindComponentByClass<UInventoryComponent>();
+	Inventory->GrabItem(SlotIndex, Cast<ABaseItem>(ItemToPickup));
 	return EBTNodeResult::Succeeded;
 }
 

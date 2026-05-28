@@ -23,10 +23,12 @@ EBTNodeResult::Type UMoveToLocationTask::ExecuteTask(UBehaviorTreeComponent& Own
 void UMoveToLocationTask::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	APawn* Survivor = OwnerComp.GetAIOwner()->GetPawn();
+	
 	double distanceSquared{FVector2D::DistSquared(
 		FVector2D{Survivor->GetActorLocation()}, FVector2D{TargetLocation})
 	};
 	
+	//is pickuprange squared :)
 	if (distanceSquared < 1000)
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 }

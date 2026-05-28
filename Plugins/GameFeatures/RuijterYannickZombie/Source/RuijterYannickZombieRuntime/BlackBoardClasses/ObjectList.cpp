@@ -11,7 +11,6 @@ UObjectList::FDataType UObjectList::GetValue(const UObjectList* KeyOb, const uin
 
 bool UObjectList::SetValue(UObjectList* KeyOb, uint8* RawData, const FDataType& Value)
 {
-	if (!RawData) return false;
 	*reinterpret_cast<FDataType*>(RawData) = Value;
 	return true;
 }

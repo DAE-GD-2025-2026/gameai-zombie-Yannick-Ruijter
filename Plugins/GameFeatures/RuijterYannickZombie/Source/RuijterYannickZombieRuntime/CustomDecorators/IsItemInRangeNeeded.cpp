@@ -4,7 +4,6 @@
 #include "IsItemInRangeNeeded.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
-#include "../BlackBoardClasses/ObjectList.h"
 UIsItemInRangeNeeded::UIsItemInRangeNeeded()
 {
 }

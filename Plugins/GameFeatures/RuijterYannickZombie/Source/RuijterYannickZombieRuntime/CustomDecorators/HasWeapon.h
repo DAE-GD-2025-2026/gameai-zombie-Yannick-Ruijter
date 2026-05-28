@@ -1,14 +1,13 @@
 #pragma once
 #include "BehaviorTree/BTDecorator.h"
-#include "ItemsInRange.generated.h"
+#include "HasWeapon.generated.h"
 
 UCLASS()
-class UItemsInRange : public UBTDecorator
+class UHasWeapon : public UBTDecorator
 {
 	GENERATED_BODY()
 public:
-	UItemsInRange();
-
+	UHasWeapon();
 protected:
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
 };

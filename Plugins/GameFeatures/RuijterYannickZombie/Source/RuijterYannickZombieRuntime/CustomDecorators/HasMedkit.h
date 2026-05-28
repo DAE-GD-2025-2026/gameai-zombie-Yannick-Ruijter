@@ -1,14 +1,13 @@
 #pragma once
 #include "BehaviorTree/BTDecorator.h"
-#include "Zombies/BaseZombie.h"
-#include "EnemyInRange.generated.h"
+#include "HasMedkit.generated.h"
 
 UCLASS()
-class UEnemyInRange : public UBTDecorator
+class UHasMedkit : public UBTDecorator
 {
 	GENERATED_BODY()
 public:
-	UEnemyInRange();
+	UHasMedkit();
 protected:
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
 };

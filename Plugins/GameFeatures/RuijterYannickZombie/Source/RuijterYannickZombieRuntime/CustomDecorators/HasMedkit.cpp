@@ -1,0 +1,26 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "HasMedkit.h"
+
+#include "AIController.h"
+#include "Common/InventoryComponent.h"
+
+#include "Items/Medkit.h"
+
+UHasMedkit::UHasMedkit()
+{
+}
+
+bool UHasMedkit::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
+{
+	auto Survivor = Cast<ASurvivorPawn>(OwnerComp.GetAIOwner()->GetPawn());
+	auto ItemsInInventory = Survivor->FindComponentByClass<UInventoryComponent>()->GetInventory();
+	int MedkitCount = 0;
+	//count the amount of weapons we have
+	for (auto Item : ItemsInInventory)
+	{
+		if (Cast<AMedkit>(Item)) MedkitCount++;
+	}
+	return MedkitCount > 0;
+}

@@ -25,6 +25,15 @@ void UStudentPerceptor::BeginPlay()
 	Blackboard->SetValueAsObject("Perceptor", this);
 }
 
+FVector UStudentPerceptor::GetAverageZombieLocation()
+{
+	FVector Location{};
+	for (auto& Zombie : ZombiesInRange) 
+		Location += Zombie.GetActorLocation();
+	Location /= ZombiesInRange.Num();
+	return Location;
+}
+
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (!Stimulus.WasSuccessfullySensed()) return;

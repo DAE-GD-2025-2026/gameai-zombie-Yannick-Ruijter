@@ -20,6 +20,7 @@ public:
 	TArray<ABaseZombie> ZombiesInRange;
 	TArray<ABaseItem> ItemsInSight;
 	virtual void BeginPlay() override;
+	FVector GetAverageZombieLocation();
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 };

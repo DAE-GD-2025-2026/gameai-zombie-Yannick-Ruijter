@@ -20,11 +20,6 @@ public:
 	UStudentPerceptor();
 	
 	virtual void BeginPlay() override;
-
-	virtual void SetOwner(AAIController* owner);
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-private:
-	UPROPERTY()
-	AAIController* Controller;
 };

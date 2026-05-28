@@ -11,7 +11,7 @@
 UExploreVillageTask::UExploreVillageTask()
 {
 	bNotifyTick = true;
-	NodeName = TEXT("Find Village");
+	NodeName = TEXT("Explore village");
 }
 
 EBTNodeResult::Type UExploreVillageTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -39,7 +39,7 @@ void UExploreVillageTask::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 
 FString UExploreVillageTask::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("Finds nearest village\nWrites to: blackboard"));
+	return FString::Printf(TEXT("Explores village"));
 }
 
 void UExploreVillageTask::CalculateRandomPoint(AAIController* AIController)

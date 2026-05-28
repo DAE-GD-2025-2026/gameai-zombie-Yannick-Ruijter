@@ -21,16 +21,11 @@ void UStudentPerceptor::BeginPlay()
 	}
 }
 
-void UStudentPerceptor::SetOwner(AAIController* owner)
-{
-	Controller = owner;
-}
-
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (!Stimulus.WasSuccessfullySensed()) return;
 
-	auto Blackboard = Controller->GetBlackboardComponent();
+	auto Blackboard = Cast<AAIController>(Cast<APawn>(GetOwner())->GetController())->GetBlackboardComponent();
 	if (!Blackboard) return;
 	
 	GEngine->AddOnScreenDebugMessage(5, 1.f, FColor::Green, 

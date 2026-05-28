@@ -20,14 +20,6 @@ EBTNodeResult::Type UFindVillageTask::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	auto Survivor = AIController->GetPawn();
 	if (!Survivor) return EBTNodeResult::Failed;
 	CalculateRandomPoint(AIController);
-	StudentPerceptor = AIController->FindComponentByClass<UStudentPerceptor>();
-	if (!StudentPerceptor)
-	{
-		StudentPerceptor = NewObject<UStudentPerceptor>(AIController);
-		StudentPerceptor->SetOwner(AIController);
-		AIController->AddInstanceComponent(StudentPerceptor);
-		StudentPerceptor->RegisterComponent();
-	}
 	
 	return EBTNodeResult::InProgress;
 }

@@ -1,14 +1,14 @@
 #pragma once
 #include "BehaviorTree/BTDecorator.h"
-#include "IsItemInRangeNeeded.generated.h"
-
+#include "IsStaminaUnderThreshold.generated.h"
 UCLASS()
-class UIsItemInRangeNeeded : public UBTDecorator
+class UIsStaminaUnderThreshold : public UBTDecorator
 {
 	GENERATED_BODY()
 public:
-	UIsItemInRangeNeeded();
-
+	UIsStaminaUnderThreshold();
+	UPROPERTY(EditAnywhere)
+	int ThresHoldPercentage = 30;
 protected:
 	virtual bool CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const override;
 };

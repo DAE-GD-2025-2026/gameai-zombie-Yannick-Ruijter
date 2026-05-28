@@ -4,6 +4,8 @@
 #include "StudentPerceptor.h"
 
 #include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Perception/AIPerceptionComponent.h"
 
 
 UStudentPerceptor::UStudentPerceptor()
@@ -19,6 +21,8 @@ void UStudentPerceptor::BeginPlay()
 	{
 		PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &UStudentPerceptor::OnPerceptionUpdated);
 	}
+	auto Blackboard = Cast<AAIController>(Cast<APawn>(GetOwner())->GetController())->GetBlackboardComponent();
+	Blackboard->SetValueAsObject("Perceptor", this);
 }
 
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)

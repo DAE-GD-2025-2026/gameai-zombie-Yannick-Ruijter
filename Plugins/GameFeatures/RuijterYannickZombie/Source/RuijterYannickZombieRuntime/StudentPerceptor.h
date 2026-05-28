@@ -4,10 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Perception/AIPerceptionComponent.h"
+#include "Items/BaseItem.h"
 #include "Perception/AISenseConfig_Sight.h"
-#include "Perception/AISenseConfig_Damage.h"
-#include "Perception/AISense_Damage.h"
+#include "Zombies/BaseZombie.h"
 #include "StudentPerceptor.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -18,7 +17,8 @@ class RUIJTERYANNICKZOMBIERUNTIME_API UStudentPerceptor : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UStudentPerceptor();
-	
+	TArray<ABaseZombie> ZombiesInRange;
+	TArray<ABaseItem> ItemsInSight;
 	virtual void BeginPlay() override;
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);

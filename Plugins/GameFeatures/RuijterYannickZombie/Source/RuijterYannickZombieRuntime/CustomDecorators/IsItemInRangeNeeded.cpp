@@ -11,6 +11,7 @@ UIsItemInRangeNeeded::UIsItemInRangeNeeded()
 
 bool UIsItemInRangeNeeded::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
-	throw("Not implemented yet");
-	//return false;
+	//todo change the item to pick up to the wanted item
+	//set the inventory index
+	return false;
 }

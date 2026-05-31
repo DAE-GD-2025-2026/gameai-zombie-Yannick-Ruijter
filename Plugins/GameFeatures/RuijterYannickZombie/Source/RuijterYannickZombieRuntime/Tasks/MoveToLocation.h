@@ -20,6 +20,10 @@ public:
 	void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds);
 	virtual FString GetStaticDescription() const override;
 protected:
+	UPROPERTY()
+	ABaseItem* ItemToPickUp{nullptr};
+	UPROPERTY()
+	UInventoryComponent* Inventory{nullptr};
 	FVector TargetLocation;
 	FVector LastRandomPoint{};
 	void CalculateRandomPoint(AAIController* AIController);

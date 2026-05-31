@@ -4,6 +4,7 @@
 #include "Common/InventoryComponent.h"
 #include "Items/Food.h"
 #include "Items/Weapon.h"
+#include "RuijterYannickZombieRuntime/CustomDecorators/IsItemNeeded.h"
 
 UShootGun::UShootGun()
 {
@@ -14,14 +15,14 @@ UShootGun::UShootGun()
 EBTNodeResult::Type UShootGun::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	auto AIController = OwnerComp.GetAIOwner();
-	auto InventoryComponent = AIController->FindComponentByClass<UInventoryComponent>();
+	auto InventoryComponent = AIController->GetPawn()->FindComponentByClass<UInventoryComponent>();
 	auto Inventory = InventoryComponent->GetInventory();
 	for (int i = 0; i < Inventory.Num(); i++)
 	{
-		if (auto Weapon = Cast<AWeapon>(Inventory[i]))
+		if (Inventory[i]->GetItemType() == EItemType::Shotgun || Inventory[i]->GetItemType() == EItemType::Pistol)
 		{
 			InventoryComponent->UseItem(i);
-			if (Weapon->GetValue() <= 0)
+			if (Inventory[i]->GetValue() <= 0)
 				InventoryComponent->RemoveItem(i);
 			break;
 		}

@@ -10,7 +10,7 @@
 UEatFood::UEatFood()
 {
 	bNotifyTick = true;
-	NodeName = TEXT("Pick Up Item");
+	NodeName = TEXT("Eats food");
 }
 
 EBTNodeResult::Type UEatFood::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -20,7 +20,7 @@ EBTNodeResult::Type UEatFood::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uin
 	auto Inventory = InventoryComponent->GetInventory();
 	for (int i = 0; i < Inventory.Num(); i++)
 	{
-		if (Cast<AFood>(Inventory[i]))
+		if (Inventory[i]->GetItemType() == EItemType::Food)
 		{
 			InventoryComponent->UseItem(i);
 			InventoryComponent->RemoveItem(i);
@@ -32,5 +32,5 @@ EBTNodeResult::Type UEatFood::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uin
 
 FString UEatFood::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("Picks up the item specified in blackboard"));
+	return FString::Printf(TEXT("Eats food"));
 }

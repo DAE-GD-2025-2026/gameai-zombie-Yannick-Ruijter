@@ -19,7 +19,8 @@ bool UHasWeapon::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, u
 	//count the amount of weapons we have
 	for (auto Item : ItemsInInventory)
 	{
-		if (Cast<AWeapon>(Item)) WeaponCount++;
+		if (Item == nullptr) continue;
+		if (Item->GetItemType() == EItemType::Shotgun || Item->GetItemType() == EItemType::Pistol) WeaponCount++;
 	}
 	return WeaponCount > 0;
 }

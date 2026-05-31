@@ -19,7 +19,8 @@ bool UHasFood::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uin
 	//count the amount of weapons we have
 	for (auto Item : ItemsInInventory)
 	{
-		if (Cast<AFood>(Item)) FoodCount++;
+		if (Item == nullptr) continue;
+		if (Item->GetItemType() == EItemType::Food) FoodCount++;
 	}
 	return FoodCount > 0;
 }

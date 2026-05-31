@@ -17,10 +17,14 @@ class RUIJTERYANNICKZOMBIERUNTIME_API UStudentPerceptor : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UStudentPerceptor();
-	TArray<ABaseZombie> ZombiesInRange;
-	TArray<ABaseItem> ItemsInSight;
+	TArray<ABaseZombie*> ZombiesInRange{};
+	TArray<ABaseItem*> ItemsInSight{};
 	virtual void BeginPlay() override;
-	FVector GetAverageZombieLocation();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+    FVector GetAverageZombieLocation();
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	
+private:
+	UBlackboardComponent* BlackboardComponent;
 };

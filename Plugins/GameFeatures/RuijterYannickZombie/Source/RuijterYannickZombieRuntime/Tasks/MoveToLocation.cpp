@@ -2,6 +2,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "NavigationSystem.h"
+#include "Common/InventoryComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 
 UMoveToLocationTask::UMoveToLocationTask()
@@ -16,7 +17,6 @@ EBTNodeResult::Type UMoveToLocationTask::ExecuteTask(UBehaviorTreeComponent& Own
 	auto BlackBoard = AIController->GetBlackboardComponent();
 	TargetLocation = BlackBoard->GetValueAsVector(TargetKey);
 	AIController->MoveTo(TargetLocation);
-	
 	return EBTNodeResult::InProgress;
 }
 
@@ -28,9 +28,9 @@ void UMoveToLocationTask::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Nod
 		FVector2D{Survivor->GetActorLocation()}, FVector2D{TargetLocation})
 	};
 	
-	//is pickuprange squared :)
-	if (distanceSquared < 1000)
+	if (900 > distanceSquared)
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	
 }
 
 FString UMoveToLocationTask::GetStaticDescription() const

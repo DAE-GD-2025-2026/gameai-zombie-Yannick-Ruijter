@@ -24,10 +24,10 @@ bool UIsItemNeeded::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp
 	BlackBoard->SetValueAsBool("ItemSpotted", false);
 	
 	auto SpottedItem = Cast<ABaseItem>(BlackBoard->GetValueAsObject("LastSpottedItem"));
-	auto ItemType = GetItemType(SpottedItem);
+	auto ItemType = SpottedItem->GetItemType();
 	//we really dont need garbage
-	if (ItemType == ItemType::Garbage) return false;
-	
+	if (ItemType == EItemType::Garbage) return false;
+	BlackBoard->SetValueAsObject("ItemToPickUp", SpottedItem);
 	auto InventoryComponent = AIController->GetPawn()->FindComponentByClass<UInventoryComponent>();
 	auto Inventory = InventoryComponent->GetInventory();
 	int WeaponCount = 0;
@@ -42,41 +42,45 @@ bool UIsItemNeeded::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp
 	for (int i = 0; i < Inventory.Num(); i++)
 	{
 		if (Inventory[i] != nullptr) totalItemCount++;
-		else continue;
-		if (auto Weapon = Cast<AWeapon>(Inventory[i]))
-		{
-			WeaponCount++;
-			//get the ammo and compare to the current weapon with the fewest ammo
-			if (Weapon->GetValue() < FewestAmmo)
-			{
-				FewestAmmo = Weapon->GetValue();
-				LastWeaponIndex = i;
-			}
-		}
-		else if (Cast<AFood>(Inventory[i]))
-		{
-			FoodCount++;
-			LastFoodIndex = i;
-		}
-		else if (Cast<AMedkit>(Inventory[i]))
-		{
-			MedkitCount++;
-			LastMedkitIndex = i;
-		}
 		else
 		{
+			//we always take an item if we have free space
+			BlackBoard->SetValueAsInt("FreeItemSlot", i);
+			return true;
+		}
+		
+		switch (Inventory[i]->GetItemType())
+		{
+		case EItemType::Food:
+			FoodCount++;
+			LastFoodIndex = i;
+			break;
+		case EItemType::Medkit:
+			MedkitCount++;
+			LastMedkitIndex = i;
+			break;
+		case EItemType::Shotgun:
+		case EItemType::Pistol:
+			WeaponCount++;
+			//get the ammo and compare to the current weapon with the fewest ammo
+			if (Inventory[i]->GetValue() < FewestAmmo)
+			{
+				FewestAmmo = Inventory[i]->GetValue();
+				LastWeaponIndex = i;
+			}
+			break;
+		case EItemType::Garbage:
 			//if it's garbage (normally should not happen but just in case)
 			InventoryComponent->RemoveItem(i);
+			break;
 		}
 	}
-	
-	//if we have space we take it
-	if (totalItemCount < Inventory.Num()) return true;
 	
 	//our optimal layout is 2 guns, 1 medkti and 2 foods
 	switch (ItemType)
 	{
-	case ItemType::Weapon:
+	case EItemType::Pistol:
+	case EItemType::Shotgun:
 	{
 	    auto Weapon = Cast<AWeapon>(SpottedItem);
 	    // we need at least 2 weapons
@@ -96,7 +100,7 @@ bool UIsItemNeeded::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp
 	    BlackBoard->SetValueAsInt("FreeItemSlot", LastWeaponIndex);
 	    return true;
 	}
-	case ItemType::Medkit:
+	case EItemType::Medkit:
 	{
 	    // optimal is 1 medkit, so if we already have one we don't need more
 	    if (MedkitCount >= 1) return false;
@@ -107,7 +111,7 @@ bool UIsItemNeeded::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp
 	        BlackBoard->SetValueAsInt("FreeItemSlot", LastFoodIndex);
 		return true;
 	}
-	case ItemType::Food:
+	case EItemType::Food:
 	{
 	    // optimal is 2 foods, so if we already have 2 or more we don't need more
 	    if (FoodCount >= 2) return false;
@@ -123,12 +127,4 @@ bool UIsItemNeeded::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp
 	    break;
 	}
 	return false;
-}
-
-UIsItemNeeded::ItemType UIsItemNeeded::GetItemType(ABaseItem* Item)
-{
-	if (Cast<AWeapon>(Item)) return ItemType::Weapon;
-	if (Cast<AFood>(Item)) return ItemType::Food;
-	if (Cast<AMedkit>(Item)) return ItemType::Medkit;
-	return ItemType::Garbage;
 }

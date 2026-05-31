@@ -17,7 +17,7 @@ EBTNodeResult::Type UPickupItem::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 	auto AIController = OwnerComp.GetAIOwner();
 	auto BlackBoard = AIController->GetBlackboardComponent();
 	auto ItemToPickup = BlackBoard->GetValueAsObject("ItemToPickup");
-	int SlotIndex = BlackBoard->GetValueAsInt("ItemIndex");
+	int SlotIndex = BlackBoard->GetValueAsInt("FreeItemSlot");
 	auto Inventory = Cast<ASurvivorPawn>(AIController->GetPawn())->FindComponentByClass<UInventoryComponent>();
 	Inventory->GrabItem(SlotIndex, Cast<ABaseItem>(ItemToPickup));
 	return EBTNodeResult::Succeeded;

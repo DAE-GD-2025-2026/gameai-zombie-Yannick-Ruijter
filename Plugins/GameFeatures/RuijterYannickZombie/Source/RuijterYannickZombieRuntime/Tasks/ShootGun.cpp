@@ -28,6 +28,9 @@ EBTNodeResult::Type UShootGun::ExecuteTask(UBehaviorTreeComponent& OwnerComp, ui
 			break;
 		}
 	}
+	if (AIController->GetBlackboardComponent()->GetValueAsObject("ClosestEnemy") == nullptr)
+		AIController->GetBlackboardComponent()->SetValueAsBool("EnemySpotted", false);
+	
 	return EBTNodeResult::Succeeded;
 }
 

@@ -48,13 +48,22 @@ void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType,
 		BlackboardComponent->SetValueAsObject("LastSpottedItem", ItemsSpotted[0]);
 		BlackboardComponent->SetValueAsBool("ItemSpotted", true);
 	}
+	
+	bool EnemySpotted = BlackboardComponent->GetValueAsBool("EnemySpotted");
+	if (!EnemySpotted && ZombiesInRange.Num() > 0)
+	{
+		BlackboardComponent->SetValueAsBool("EnemySpotted", GetClosestZombie() != nullptr);
+	}
 }
 
 FVector UStudentPerceptor::GetAverageZombieLocation()
 {
 	FVector Location{};
-	for (auto& Zombie : ZombiesInRange) 
-		Location += Zombie->GetActorLocation();
+	for (int i {ZombiesInRange.Num() - 1}; i >= 0 ; i--)
+	{
+		if (ZombiesInRange[i] == nullptr) ZombiesInRange.RemoveAt(i);
+		Location += ZombiesInRange[i]->GetActorLocation();
+	}
 	Location /= ZombiesInRange.Num();
 	return Location;
 }
@@ -63,8 +72,9 @@ ABaseZombie* UStudentPerceptor::GetClosestZombie()
 {
 	double ClosestDistance = FLT_MAX;
 	int ClosestIndex = -1;
-	for (int i {0}; i < ZombiesInRange.Num(); i++)
+	for (int i {ZombiesInRange.Num() - 1}; i >= 0 ; i--)
 	{
+		if (ZombiesInRange[i] == nullptr) ZombiesInRange.RemoveAt(i);
 		double CurrentDist{(ZombiesInRange[i]->GetActorLocation() - GetOwner()->GetActorLocation()).SquaredLength()};
 		if (CurrentDist < ClosestDistance)
 		{
@@ -72,7 +82,7 @@ ABaseZombie* UStudentPerceptor::GetClosestZombie()
 			ClosestIndex = i;
 		}
 	}
-	
+	if (ClosestIndex == -1) return nullptr;
 	return ZombiesInRange[ClosestIndex];
 }
 
@@ -116,6 +126,8 @@ FString::Printf(TEXT("Sensing Damage")));
 		
 		if (auto SensedHouse = Cast<AHouse>(Actor))
 		{
+			if (HousesSpotted.Contains(SensedHouse)) return;
+			HousesSpotted.Insert(SensedHouse, CurrentHouseIndex);
 			blackBoard->SetValueAsObject("LastSpottedHouse", SensedHouse);
 			blackBoard->SetValueAsBool("HouseSpotted", true);
 		}

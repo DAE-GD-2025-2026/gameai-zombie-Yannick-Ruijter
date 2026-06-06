@@ -7,6 +7,8 @@ UCalculateNextRingPos::UCalculateNextRingPos()
 	NodeName = TEXT("Calculate Next Ring Position");
 }
 
+#include "NavigationSystem.h"
+
 EBTNodeResult::Type UCalculateNextRingPos::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
@@ -15,18 +17,20 @@ EBTNodeResult::Type UCalculateNextRingPos::ExecuteTask(UBehaviorTreeComponent& O
 
 	FVector Current = BlackBoard->GetValueAsVector(TargetKey);
 
-	// Move in current direction by SideLength
-	SideLength += SideIncrease;
 	Current.X += CurrentDirection.X * SideLength;
 	Current.Y += CurrentDirection.Y * SideLength;
 
-	// Turn left (rotate 90 degrees)
 	CurrentDirection = FVector2D(-CurrentDirection.Y, CurrentDirection.X);
 
-	// Every 2 turns, increase the side length
 	SidesWalked++;
 	if (SidesWalked % 2 == 0)
-		SideIncrease += StepSize;
+		SideLength += StepSize;
+
+	// Project to nearest navmesh point
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(OwnerComp.GetWorld());
+	FNavLocation ProjectedLocation;
+	if (NavSys && NavSys->ProjectPointToNavigation(Current, ProjectedLocation, FVector(500.f, 500.f, 500.f)))
+		Current = ProjectedLocation.Location;
 
 	BlackBoard->SetValueAsVector(TargetKey, Current);
 	return EBTNodeResult::Succeeded;

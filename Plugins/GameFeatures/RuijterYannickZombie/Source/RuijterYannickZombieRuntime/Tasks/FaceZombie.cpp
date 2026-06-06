@@ -15,6 +15,7 @@ EBTNodeResult::Type UFaceZombie::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 	auto AIController = OwnerComp.GetAIOwner();
 	auto BlackBoard = AIController->GetBlackboardComponent();
 	auto TargetZombie = Cast<ABaseZombie>(BlackBoard->GetValueAsObject("ClosestEnemy"));
+	if (TargetZombie == nullptr) return EBTNodeResult::Failed;
 	AIController->SetFocus(Cast<AActor>(TargetZombie));
 	return EBTNodeResult::Succeeded;
 }

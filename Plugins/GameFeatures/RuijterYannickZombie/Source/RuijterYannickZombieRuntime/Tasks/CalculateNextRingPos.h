@@ -23,7 +23,6 @@ public:
 
 private:
 	float SideLength = 0.f;
-	float SideIncrease = 1000.f;
 	int32 SidesWalked = 0;
 	FVector2D CurrentDirection = FVector2D(1, 0);
 };

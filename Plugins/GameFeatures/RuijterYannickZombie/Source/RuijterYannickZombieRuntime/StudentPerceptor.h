@@ -7,6 +7,7 @@
 #include "Items/BaseItem.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Zombies/BaseZombie.h"
+#include "Village/House/House.h"
 #include "StudentPerceptor.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -19,6 +20,7 @@ public:
 	UStudentPerceptor();
 	TArray<ABaseZombie*> ZombiesInRange{};
 	TArray<ABaseItem*> ItemsSpotted{};
+	TArray<AHouse*> HousesSpotted{};
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     FVector GetAverageZombieLocation();
@@ -28,4 +30,5 @@ public:
 	
 private:
 	UBlackboardComponent* BlackboardComponent;
+	int CurrentHouseIndex{};
 };

@@ -16,10 +16,11 @@ UEatFood::UEatFood()
 EBTNodeResult::Type UEatFood::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	auto AIController = OwnerComp.GetAIOwner();
-	auto InventoryComponent = AIController->FindComponentByClass<UInventoryComponent>();
+	auto InventoryComponent = AIController->GetPawn()->FindComponentByClass<UInventoryComponent>();
 	auto Inventory = InventoryComponent->GetInventory();
 	for (int i = 0; i < Inventory.Num(); i++)
 	{
+		if (Inventory[i] == nullptr) continue;
 		if (Inventory[i]->GetItemType() == EItemType::Food)
 		{
 			InventoryComponent->UseItem(i);

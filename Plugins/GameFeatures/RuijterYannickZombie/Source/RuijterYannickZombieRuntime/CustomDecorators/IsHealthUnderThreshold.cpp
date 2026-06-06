@@ -11,6 +11,6 @@ bool UIsHealthUnderThreshold::CalculateRawConditionValue(UBehaviorTreeComponent&
 {
 	auto Survivor = Cast<ASurvivorPawn>(OwnerComp.GetAIOwner()->GetPawn());
 	auto HealthComponent = Survivor->FindComponentByClass<UHealthComponent>();
-	int ThresholdHealth = HealthComponent->GetMaxHealth() / 100 * ThresHoldPercentage;
+	int ThresholdHealth = ThresHoldPercentage / 10.f;
 	return HealthComponent->GetHealth() <= ThresholdHealth;
 }

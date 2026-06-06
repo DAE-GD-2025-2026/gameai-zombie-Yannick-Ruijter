@@ -48,19 +48,20 @@ void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType,
 	}
 	
 	BlackboardComponent->SetValueAsBool("EnemyClose", false);
-	for (int i = ZombiesInRange.Num() - 1; i >= 0; i--)
+	for (int i = CloseZombies.Num() - 1; i >= 0; i--)
 	{
-		if (ZombiesInRange[i] == nullptr)
+		if (!IsValid(CloseZombies[i]))
 		{
-			ZombiesInRange.RemoveAt(i);
+			CloseZombies.RemoveAt(i);
 			continue;
 		}
-		auto DistanceSquared = (ZombiesInRange[i]->GetActorLocation() - GetOwner()->GetActorLocation()).SquaredLength();
+		auto DistanceSquared = (CloseZombies[i]->GetActorLocation() - GetOwner()->GetActorLocation()).SquaredLength();
 		if (DistanceSquared < 500 * 500)
 		{
 			BlackboardComponent->SetValueAsBool("EnemyClose", true);
 			break;
 		}
+		CloseZombies.RemoveAt(i);		
 	}
 	
 	if (BlackboardComponent->GetValueAsBool("SetNextHouse"))
@@ -72,27 +73,32 @@ void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType,
 
 FVector UStudentPerceptor::GetAverageZombieLocation()
 {
-	FVector Location{};
-	for (int i{ZombiesInRange.Num() - 1}; i >= 0; i--)
+	FVector Location = FVector::ZeroVector;
+	int32 ValidCount = 0;
+
+	for (int i = CloseZombies.Num() - 1; i >= 0; i--)
 	{
-		if (ZombiesInRange[i] == nullptr) 
+		if (!IsValid(CloseZombies[i]))
 		{
-			ZombiesInRange.RemoveAt(i);
+			CloseZombies.RemoveAt(i);
 			continue;
 		}
-		Location += ZombiesInRange[i]->GetActorLocation();
+		Location += CloseZombies[i]->GetActorLocation();
+		ValidCount++;
 	}
-	Location /= ZombiesInRange.Num();
-	return Location;
+
+	if (ValidCount == 0) return FVector::ZeroVector;
+
+	return Location / ValidCount;
 }
 
 ABaseZombie* UStudentPerceptor::GetClosestZombie()
 {
 	double ClosestDistance = FLT_MAX;
-	int ClosestIndex = -1;
+	ABaseZombie* ClosestZombie{nullptr};
 	for (int i{ZombiesInRange.Num() - 1}; i >= 0; i--)
 	{
-		if (ZombiesInRange[i] == nullptr)
+		if (!IsValid(ZombiesInRange[i]))
 		{
 			ZombiesInRange.RemoveAt(i);
 			continue;
@@ -101,11 +107,11 @@ ABaseZombie* UStudentPerceptor::GetClosestZombie()
 		if (CurrentDist < ClosestDistance)
 		{
 			ClosestDistance = CurrentDist;
-			ClosestIndex = i;
+			ClosestZombie = ZombiesInRange[i];
 		}
 	}
-	if (ClosestIndex == -1) return nullptr;
-	return ZombiesInRange[ClosestIndex];
+	
+	return ClosestZombie;
 }
 
 ABaseItem* UStudentPerceptor::GetNeededItem()
@@ -119,7 +125,7 @@ ABaseItem* UStudentPerceptor::GetNeededItem()
 
     for (int i = 0; i < Inventory.Num(); i++)
     {
-        if (Inventory[i] == nullptr)
+        if (!IsValid(Inventory[i]))
         {
             FreeSlot = i;
             break;
@@ -272,6 +278,7 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		if (auto Zombie = Cast<ABaseZombie>(Actor))
 		{
+			CloseZombies.AddUnique(Zombie);
 			if (ZombiesInRange.Contains(Zombie)) return;
 			blackBoard->SetValueAsBool("EnemySpotted", true);
 			ZombiesInRange.Add(Zombie);
@@ -294,8 +301,10 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		if (auto SensedHouse = Cast<AHouse>(Actor))
 		{
 			if (HousesSpotted.Contains(SensedHouse)) return;
-
-			HousesSpotted.Insert(SensedHouse, CurrentHouseIndex);
+			GEngine->AddOnScreenDebugMessage(23, 1.f, FColor::Green,
+											 FString::Printf(TEXT("Spotted a new house: %i houses remembered spotted in total!"), HousesSpotted.Num()));
+			
+			HousesSpotted.Add(SensedHouse);
 
 			// If we just crossed the threshold, enable infinite cycling
 			if (!CycleHouses && HousesSpotted.Num() >= HouseCycleThreshold)
@@ -311,16 +320,15 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		if (auto Zombie = Cast<ABaseZombie>(Actor))
 		{
 			ZombiesInRange.Remove(Zombie);
-        
+
 			if (ZombiesInRange.IsEmpty())
 			{
-				blackBoard->SetValueAsBool("EnemySpotted", false);
-				blackBoard->SetValueAsObject("ClosestEnemy", nullptr);
+				BlackboardComponent->SetValueAsBool("EnemySpotted", false);
+				BlackboardComponent->SetValueAsObject("ClosestEnemy", nullptr);
 			}
 			else
 			{
-				// Still has zombies in range, update closest
-				blackBoard->SetValueAsObject("ClosestEnemy", GetClosestZombie());
+				BlackboardComponent->SetValueAsObject("ClosestEnemy", GetClosestZombie());
 			}
 		}
 	}
@@ -341,8 +349,10 @@ AHouse* UStudentPerceptor::GetNextHouse() const
 void UStudentPerceptor::AdvanceHouseIndex()
 {
 	if (HousesSpotted.IsEmpty() || CurrentHouseIndex >= HousesSpotted.Num()) return;
-
+	
 	CurrentHouseIndex++;
+	GEngine->AddOnScreenDebugMessage(33, 1.f, FColor::Green,
+									 FString::Printf(TEXT("Increased house index to %i!"), CurrentHouseIndex));
 
 	// Stop advancing if below threshold and list exhausted
 	if (!CycleHouses && CurrentHouseIndex >= HousesSpotted.Num())

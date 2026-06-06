@@ -38,6 +38,12 @@ void UTakeDistanceFromZombies::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 	auto Perceptor = Cast<UStudentPerceptor>(AIController->GetBlackboardComponent()->GetValueAsObject("Perceptor"));
 
 	auto ZombieLocation = Perceptor->GetAverageZombieLocation();
+	if (ZombieLocation.ContainsNaN())
+	{
+		Cast<ASurvivorPawn>(Pawn)->StopRunning();
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
 	auto SurvivorLocation = Pawn->GetActorLocation();
 
 	// Finish when far enough from the zombie, not from the target

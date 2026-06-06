@@ -18,8 +18,13 @@ class RUIJTERYANNICKZOMBIERUNTIME_API UStudentPerceptor : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UStudentPerceptor();
+    UPROPERTY()
 	TArray<ABaseZombie*> ZombiesInRange{};
+    UPROPERTY()
+	TArray<ABaseZombie*> CloseZombies{};
+    UPROPERTY()
 	TArray<ABaseItem*> ItemsSpotted{};
+    UPROPERTY()
 	TArray<AHouse*> HousesSpotted{};
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -44,5 +49,5 @@ private:
 	TArray<ABaseItem*> PreviousInventory;
 	int CurrentHouseIndex{};
 	bool CycleHouses{false};
-	static constexpr int32 HouseCycleThreshold = 6;
+	static constexpr int32 HouseCycleThreshold = 10;
 };

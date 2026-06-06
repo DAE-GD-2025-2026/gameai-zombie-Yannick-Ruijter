@@ -14,7 +14,8 @@ EBTNodeResult::Type UCalculateNextRingPos::ExecuteTask(UBehaviorTreeComponent& O
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	UBlackboardComponent* BlackBoard = AIController ? AIController->GetBlackboardComponent() : nullptr;
 	if (!BlackBoard) return EBTNodeResult::Failed;
-
+	if (!BlackBoard->GetValueAsBool("TargetReached")) return EBTNodeResult::Succeeded;
+	BlackBoard->SetValueAsBool("TargetReached", false);
 	FVector Current = BlackBoard->GetValueAsVector(TargetKey);
 
 	Current.X += CurrentDirection.X * SideLength;

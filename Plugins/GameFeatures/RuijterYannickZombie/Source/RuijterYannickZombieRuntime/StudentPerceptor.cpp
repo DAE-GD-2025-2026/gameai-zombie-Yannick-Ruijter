@@ -77,28 +77,28 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		GEngine->AddOnScreenDebugMessage(5, 1.f, FColor::Red, 
 FString::Printf(TEXT("Sensing Damage")));
-		blackBoard->SetValueAsBool(FName("GotDamaged"), true);
+		blackBoard->SetValueAsBool("GotDamaged", true);
 	}
 	
 	if (Stimulus.WasSuccessfullySensed())
 	{
 		if ( auto Zombie = Cast<ABaseZombie>(Actor))
 		{
-			blackBoard->SetValueAsBool(FName("EnemySpotted"), true);
+			blackBoard->SetValueAsBool("EnemySpotted", true);
 			ZombiesInRange.Add(Zombie);
 		}
 		auto Item = Cast<ABaseItem>(Actor);
 		if (Item && Item->GetItemType() != EItemType::Garbage)
 		{
 			ItemsSpotted.AddUnique(Item);
-			blackBoard->SetValueAsObject(FName("LastSpottedItem"), Item);
-			blackBoard->SetValueAsBool(FName("ItemSpotted"), true);
+			blackBoard->SetValueAsObject("LastSpottedItem", Item);
+			blackBoard->SetValueAsBool("ItemSpotted", true);
 		}
 		
 		if (auto SensedHouse = Cast<AHouse>(Actor))
 		{
-			blackBoard->SetValueAsVector(FName("TargetLocation"), SensedHouse->GetActorLocation());
-			blackBoard->SetValueAsBool(FName("VillageSpotted"), true);
+			blackBoard->SetValueAsObject("LastSpottedHouse", SensedHouse);
+			blackBoard->SetValueAsBool("HouseSpotted", true);
 		}
 	}
 	else

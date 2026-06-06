@@ -20,6 +20,7 @@ bool UHasMedkit::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, u
 	//count the amount of weapons we have
 	for (auto Item : ItemsInInventory)
 	{
+		if (Item == nullptr) continue;
 		if (Item->GetItemType() == EItemType::Medkit) MedkitCount++;
 	}
 	return MedkitCount > 0;

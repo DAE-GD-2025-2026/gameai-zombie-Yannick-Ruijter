@@ -4,6 +4,7 @@
 #include "NavigationSystem.h"
 #include "Common/InventoryComponent.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "RuijterYannickZombieRuntime/StudentPerceptor.h"
 #include "Survivor/SurvivorPawn.h"
 
 UPickupItem::UPickupItem()
@@ -19,8 +20,9 @@ EBTNodeResult::Type UPickupItem::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 	auto ItemToPickup = BlackBoard->GetValueAsObject("NeededItem");
 	int SlotIndex = BlackBoard->GetValueAsInt("FreeItemSlot");
 	auto Inventory = Cast<ASurvivorPawn>(AIController->GetPawn())->FindComponentByClass<UInventoryComponent>();
+	if (Inventory->GetInventory()[SlotIndex] != nullptr)
+		Inventory->RemoveItem(SlotIndex);
 	Inventory->GrabItem(SlotIndex, Cast<ABaseItem>(ItemToPickup));
-	BlackBoard->SetValueAsBool("ItemNeeded", false);
 	return EBTNodeResult::Succeeded;
 }
 

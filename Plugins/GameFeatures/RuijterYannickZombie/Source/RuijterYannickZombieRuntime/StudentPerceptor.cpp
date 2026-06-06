@@ -11,8 +11,6 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Village/House/House.h"
 
-//TODO when fighiting zombie, first wait untill zombie is in range
-//fix multiple items in sight
 UStudentPerceptor::UStudentPerceptor()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -41,13 +39,28 @@ void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType,
 	for (int i = 0; i < CurrentInventory.Num(); i++)
 	{
 		if (CurrentInventory[i] != PreviousInventory[i])
-			UpdateNeededItems();	
+		{
+			UpdateNeededItems();
+			GEngine->AddOnScreenDebugMessage(12, 1.f, FColor::Green,
+			FString::Printf(TEXT("Item Changed")));
+			break;
+		}
 	}
-
-	bool EnemySpotted = BlackboardComponent->GetValueAsBool("EnemySpotted");
-	if (!EnemySpotted && ZombiesInRange.Num() > 0)
+	
+	BlackboardComponent->SetValueAsBool("EnemyClose", false);
+	for (int i = ZombiesInRange.Num() - 1; i >= 0; i--)
 	{
-		BlackboardComponent->SetValueAsBool("EnemySpotted", GetClosestZombie() != nullptr);
+		if (ZombiesInRange[i] == nullptr)
+		{
+			ZombiesInRange.RemoveAt(i);
+			continue;
+		}
+		auto DistanceSquared = (ZombiesInRange[i]->GetActorLocation() - GetOwner()->GetActorLocation()).SquaredLength();
+		if (DistanceSquared < 500 * 500)
+		{
+			BlackboardComponent->SetValueAsBool("EnemyClose", true);
+			break;
+		}
 	}
 	
 	if (BlackboardComponent->GetValueAsBool("SetNextHouse"))
@@ -62,7 +75,11 @@ FVector UStudentPerceptor::GetAverageZombieLocation()
 	FVector Location{};
 	for (int i{ZombiesInRange.Num() - 1}; i >= 0; i--)
 	{
-		if (ZombiesInRange[i] == nullptr) ZombiesInRange.RemoveAt(i);
+		if (ZombiesInRange[i] == nullptr) 
+		{
+			ZombiesInRange.RemoveAt(i);
+			continue;
+		}
 		Location += ZombiesInRange[i]->GetActorLocation();
 	}
 	Location /= ZombiesInRange.Num();
@@ -75,7 +92,11 @@ ABaseZombie* UStudentPerceptor::GetClosestZombie()
 	int ClosestIndex = -1;
 	for (int i{ZombiesInRange.Num() - 1}; i >= 0; i--)
 	{
-		if (ZombiesInRange[i] == nullptr) ZombiesInRange.RemoveAt(i);
+		if (ZombiesInRange[i] == nullptr)
+		{
+			ZombiesInRange.RemoveAt(i);
+			continue;
+		}
 		double CurrentDist{(ZombiesInRange[i]->GetActorLocation() - GetOwner()->GetActorLocation()).SquaredLength()};
 		if (CurrentDist < ClosestDistance)
 		{
@@ -217,12 +238,15 @@ void UStudentPerceptor::UpdateNeededItems()
 			BlackboardComponent->SetValueAsVector("TargetLocation", ProjectedLocation.Location);
 		else
 			BlackboardComponent->SetValueAsVector("TargetLocation", ItemLocation);
+		
 	}
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(8, 1.f, FColor::Green,
 			FString::Printf(TEXT("No item needed")));
 	}
+	GEngine->AddOnScreenDebugMessage(11, 1.f, FColor::Green,
+			FString::Printf(TEXT("Nr Items In Sight %i"), ItemsSpotted.Num()));
 }
 
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
@@ -248,6 +272,7 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		if (auto Zombie = Cast<ABaseZombie>(Actor))
 		{
+			if (ZombiesInRange.Contains(Zombie)) return;
 			blackBoard->SetValueAsBool("EnemySpotted", true);
 			ZombiesInRange.Add(Zombie);
 			blackBoard->SetValueAsObject("ClosestEnemy", GetClosestZombie());
@@ -281,6 +306,24 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 			blackBoard->SetValueAsBool("HouseSpotted", GetNextHouse() != nullptr);
 		}
 	}
+	else
+	{
+		if (auto Zombie = Cast<ABaseZombie>(Actor))
+		{
+			ZombiesInRange.Remove(Zombie);
+        
+			if (ZombiesInRange.IsEmpty())
+			{
+				blackBoard->SetValueAsBool("EnemySpotted", false);
+				blackBoard->SetValueAsObject("ClosestEnemy", nullptr);
+			}
+			else
+			{
+				// Still has zombies in range, update closest
+				blackBoard->SetValueAsObject("ClosestEnemy", GetClosestZombie());
+			}
+		}
+	}
 }
 
 AHouse* UStudentPerceptor::GetNextHouse() const
@@ -297,7 +340,7 @@ AHouse* UStudentPerceptor::GetNextHouse() const
 
 void UStudentPerceptor::AdvanceHouseIndex()
 {
-	if (HousesSpotted.IsEmpty()) return;
+	if (HousesSpotted.IsEmpty() || CurrentHouseIndex >= HousesSpotted.Num()) return;
 
 	CurrentHouseIndex++;
 

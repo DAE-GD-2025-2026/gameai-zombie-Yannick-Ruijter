@@ -35,32 +35,28 @@ void UTakeDistanceFromZombies::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 {
 	auto AIController = OwnerComp.GetAIOwner();
 	auto Pawn = AIController->GetPawn();
-	auto BlackBoard = AIController->GetBlackboardComponent();
-	auto Perceptor = Cast<UStudentPerceptor>(BlackBoard->GetValueAsObject("Perceptor"));
-	auto LocationToAvoid = Perceptor->GetAverageZombieLocation();
+	auto Perceptor = Cast<UStudentPerceptor>(AIController->GetBlackboardComponent()->GetValueAsObject("Perceptor"));
+
+	auto ZombieLocation = Perceptor->GetAverageZombieLocation();
 	auto SurvivorLocation = Pawn->GetActorLocation();
-	auto Dir = (SurvivorLocation - LocationToAvoid);
-	Dir.Normalize();
+
+	// Finish when far enough from the zombie, not from the target
+	double distFromZombiesSq = FVector2D::DistSquared(FVector2D{SurvivorLocation}, FVector2D{ZombieLocation});
+	if (distFromZombiesSq > Distance * Distance)
+	{
+		Cast<ASurvivorPawn>(Pawn)->StopRunning();
+		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		return;
+	}
+
+	auto Dir = (SurvivorLocation - ZombieLocation).GetSafeNormal();
 	TargetLocation = (Dir * Distance) + SurvivorLocation;
-	
-	//make sure it falls within the navmesh
+
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(OwnerComp.GetWorld());
 	FNavLocation ProjectedLocation;
 	if (NavSys && NavSys->ProjectPointToNavigation(TargetLocation, ProjectedLocation, FVector(500.f, 500.f, 500.f)))
 		TargetLocation = ProjectedLocation.Location;
-	
-	double distanceSquared{FVector2D::DistSquared(
-		FVector2D{SurvivorLocation}, FVector2D{TargetLocation})
-	};
-	
-	//is pickuprange squared :)
-	if (distanceSquared < 1000)
-	{
-		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-		auto survivor = Cast<ASurvivorPawn>(Pawn);
-		survivor->StopRunning();
-	};
-	
+
 	AIController->MoveToLocation(TargetLocation, 50.f);
 }
 

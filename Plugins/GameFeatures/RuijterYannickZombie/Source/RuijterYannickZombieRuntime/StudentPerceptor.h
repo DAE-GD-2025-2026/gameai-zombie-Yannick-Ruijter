@@ -27,9 +27,12 @@ public:
 	ABaseZombie* GetClosestZombie();
 	ABaseItem* GetNeededItem();
 	void UpdateNeededItems();
+	
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-	
+	AHouse* GetNextHouse() const;
+	void AdvanceHouseIndex();
+
 private:
 	UPROPERTY()
 	UBlackboardComponent* BlackboardComponent;
@@ -40,4 +43,6 @@ private:
 	UPROPERTY()
 	TArray<ABaseItem*> PreviousInventory;
 	int CurrentHouseIndex{};
+	bool CycleHouses{false};
+	static constexpr int32 HouseCycleThreshold = 6;
 };

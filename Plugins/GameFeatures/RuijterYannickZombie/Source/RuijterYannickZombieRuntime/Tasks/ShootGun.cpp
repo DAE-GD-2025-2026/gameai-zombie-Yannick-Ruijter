@@ -9,7 +9,7 @@
 UShootGun::UShootGun()
 {
 	bNotifyTick = true;
-	NodeName = TEXT("Pick Up Item");
+	NodeName = TEXT("Shoot gun");
 }
 
 EBTNodeResult::Type UShootGun::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -28,9 +28,13 @@ EBTNodeResult::Type UShootGun::ExecuteTask(UBehaviorTreeComponent& OwnerComp, ui
 			break;
 		}
 	}
-	if (AIController->GetBlackboardComponent()->GetValueAsObject("ClosestEnemy") == nullptr)
-		AIController->GetBlackboardComponent()->SetValueAsBool("EnemySpotted", false);
 	
+	auto BlackBoard = AIController->GetBlackboardComponent();
+	if (BlackBoard->GetValueAsObject("ClosestEnemy") == nullptr)
+		BlackBoard->SetValueAsBool("EnemySpotted", false);
+	
+	//make sure it continues rotating
+	BlackBoard->SetValueAsBool("NeedsRefocus", true);
 	return EBTNodeResult::Succeeded;
 }
 

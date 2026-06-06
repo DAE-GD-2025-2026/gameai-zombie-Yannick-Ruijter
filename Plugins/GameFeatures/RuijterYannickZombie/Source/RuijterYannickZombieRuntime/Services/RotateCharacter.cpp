@@ -1,5 +1,6 @@
 #include "RotateCharacter.h"
 #include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Engine/World.h"
 #include "Survivor/SurvivorPawn.h"
@@ -53,4 +54,7 @@ void URotateCharacter::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMe
 		0.f
 	);
 	DummyActor->SetActorLocation(NewPos);
+	
+	if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("NeedsRefocus"))
+		OwnerComp.GetAIOwner()->SetFocus(DummyActor, EAIFocusPriority::Gameplay);
 }

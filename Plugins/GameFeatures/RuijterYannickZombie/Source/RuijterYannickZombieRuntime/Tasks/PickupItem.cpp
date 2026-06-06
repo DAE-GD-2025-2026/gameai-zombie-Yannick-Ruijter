@@ -20,10 +20,11 @@ EBTNodeResult::Type UPickupItem::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 	int SlotIndex = BlackBoard->GetValueAsInt("FreeItemSlot");
 	auto Inventory = Cast<ASurvivorPawn>(AIController->GetPawn())->FindComponentByClass<UInventoryComponent>();
 	Inventory->GrabItem(SlotIndex, Cast<ABaseItem>(ItemToPickup));
+	BlackBoard->SetValueAsBool("ItemNeeded", false);
 	return EBTNodeResult::Succeeded;
 }
 
 FString UPickupItem::GetStaticDescription() const
 {
-	return FString::Printf(TEXT("Picks up the item specified in blackboard"));
+	return FString::Printf(TEXT("Shoot gun in current direction"));
 }

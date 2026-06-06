@@ -49,17 +49,16 @@ void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType,
 			UpdateNeededItems();	
 	}
 
-	bool ItemSpotted = BlackboardComponent->GetValueAsBool("ItemSpotted");
-	if (!ItemSpotted && ItemsSpotted.Num() > 0)
-	{
-		BlackboardComponent->SetValueAsObject("LastSpottedItem", ItemsSpotted[0]);
-		BlackboardComponent->SetValueAsBool("ItemSpotted", true);
-	}
-
 	bool EnemySpotted = BlackboardComponent->GetValueAsBool("EnemySpotted");
 	if (!EnemySpotted && ZombiesInRange.Num() > 0)
 	{
 		BlackboardComponent->SetValueAsBool("EnemySpotted", GetClosestZombie() != nullptr);
+	}
+	
+	if (BlackboardComponent->GetValueAsBool("SetNextHouse"))
+	{
+		BlackboardComponent->SetValueAsInt("SetNextHouse", false);
+		AdvanceHouseIndex();
 	}
 }
 
@@ -165,7 +164,10 @@ ABaseItem* UStudentPerceptor::GetNeededItem()
                 return SetSlotAndReturn(Item, SlotToReplace);
             }
             if (Weapon->GetValue() > FewestAmmo)
-                return SetSlotAndReturn(Item, LastWeaponIndex);
+            {
+            	InventoryComponent->RemoveItem(LastWeaponIndex);
+	            return SetSlotAndReturn(Item, LastWeaponIndex);
+            }
             break;
         }
         case EItemType::Medkit:
@@ -192,10 +194,15 @@ ABaseItem* UStudentPerceptor::GetNeededItem()
 
 void UStudentPerceptor::UpdateNeededItems()
 {
+	GEngine->AddOnScreenDebugMessage(10, 1.f, FColor::Green,
+									 FString::Printf(TEXT("Updating Items...")));
 	auto Inv = InventoryComponent->GetInventory();
+	
 	for (int i = 0; i < Inv.Num(); ++i)
 	{
 		PreviousInventory[i] = Inv[i];
+		if (ItemsSpotted.Contains(Inv[i]))
+			ItemsSpotted.Remove(Inv[i]);
 	}
 	
 	auto ItemNeeded = GetNeededItem();
@@ -203,6 +210,10 @@ void UStudentPerceptor::UpdateNeededItems()
 	BlackboardComponent->SetValueAsObject("NeededItem", ItemNeeded);
 	if (ItemNeeded != nullptr)
 	{
+		FString ItemTypeStr = UEnum::GetValueAsString(ItemNeeded->GetItemType());
+
+		GEngine->AddOnScreenDebugMessage(9, 1.f, FColor::Green,
+			FString::Printf(TEXT("Item needed %s"), *ItemTypeStr));
 		UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(GetWorld());
 		FNavLocation ProjectedLocation;
 		FVector ItemLocation = ItemNeeded->GetActorLocation();
@@ -212,13 +223,15 @@ void UStudentPerceptor::UpdateNeededItems()
 		else
 			BlackboardComponent->SetValueAsVector("TargetLocation", ItemLocation);
 	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(8, 1.f, FColor::Green,
+			FString::Printf(TEXT("No item needed")));
+	}
 }
 
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	GEngine->AddOnScreenDebugMessage(5, 1.f, FColor::Green,
-	                                 FString::Printf(TEXT("Saw Something!")));
-
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
 	if (!OwnerPawn) return;
 
@@ -243,28 +256,69 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 			blackBoard->SetValueAsBool("EnemySpotted", true);
 			ZombiesInRange.Add(Zombie);
 			blackBoard->SetValueAsObject("ClosestEnemy", GetClosestZombie());
+			
+			GEngine->AddOnScreenDebugMessage(6, 1.f, FColor::Green,
+											 FString::Printf(TEXT("Spotted a zombie!")));
 		}
 		auto Item = Cast<ABaseItem>(Actor);
 		if (Item && Item->GetItemType() != EItemType::Garbage)
 		{
 			ItemsSpotted.AddUnique(Item);
+			GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Green,
+											 FString::Printf(TEXT("Spotted an item!")));
 			UpdateNeededItems();
 		}
 
 		if (auto SensedHouse = Cast<AHouse>(Actor))
 		{
 			if (HousesSpotted.Contains(SensedHouse)) return;
+
 			HousesSpotted.Insert(SensedHouse, CurrentHouseIndex);
-			blackBoard->SetValueAsObject("LastSpottedHouse", SensedHouse);
-			blackBoard->SetValueAsBool("HouseSpotted", true);
+
+			// If we just crossed the threshold, enable infinite cycling
+			if (!CycleHouses && HousesSpotted.Num() >= HouseCycleThreshold)
+				CycleHouses = true;
+			
+
+			blackBoard->SetValueAsObject("LastSpottedHouse", GetNextHouse());
+			blackBoard->SetValueAsBool("HouseSpotted", GetNextHouse() != nullptr);
 		}
 	}
-	else
+}
+
+AHouse* UStudentPerceptor::GetNextHouse() const
+{
+	if (HousesSpotted.IsEmpty()) return nullptr;
+
+	// Not enough houses yet and we've exhausted the list
+	if (!CycleHouses && CurrentHouseIndex >= HousesSpotted.Num())
+		return nullptr;
+
+	int32 Index = CurrentHouseIndex % HousesSpotted.Num();
+	return HousesSpotted[Index];
+}
+
+void UStudentPerceptor::AdvanceHouseIndex()
+{
+	if (HousesSpotted.IsEmpty()) return;
+
+	CurrentHouseIndex++;
+
+	// Stop advancing if below threshold and list exhausted
+	if (!CycleHouses && CurrentHouseIndex >= HousesSpotted.Num())
 	{
-		//if we lost sight of item
-		if (auto Item = Cast<ABaseItem>(Actor))
-		{
-			ItemsSpotted.Remove(Item);
-		}
+		BlackboardComponent->SetValueAsBool("HouseSpotted", false);
+		return;
+	}
+
+	// Wrap around only if cycling is enabled
+	if (CycleHouses)
+		CurrentHouseIndex = CurrentHouseIndex % HousesSpotted.Num();
+
+	AHouse* Next = GetNextHouse();
+	if (Next)
+	{
+		BlackboardComponent->SetValueAsObject("LastSpottedHouse", Next);
+		BlackboardComponent->SetValueAsBool("HouseSpotted", true);
 	}
 }

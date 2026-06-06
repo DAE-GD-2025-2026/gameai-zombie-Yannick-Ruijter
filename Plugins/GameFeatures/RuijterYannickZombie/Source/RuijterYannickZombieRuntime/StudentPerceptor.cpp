@@ -11,12 +11,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Village/House/House.h"
 
-
-//TODO make village spotted -> house spotted
-//save the last 5 houses that were spotted and compare them to the current one spotted
-//implement better searching for villages
-//implement healing when weak
-//implement fleeing when seeing zombie but have no weapon
+//TODO when fighiting zombie, first wait untill zombie is in range
 //fix multiple items in sight
 UStudentPerceptor::UStudentPerceptor()
 {
@@ -263,7 +258,9 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		auto Item = Cast<ABaseItem>(Actor);
 		if (Item && Item->GetItemType() != EItemType::Garbage)
 		{
-			ItemsSpotted.AddUnique(Item);
+			if (ItemsSpotted.Contains(Item))
+				return;
+			ItemsSpotted.Add(Item);
 			GEngine->AddOnScreenDebugMessage(7, 1.f, FColor::Green,
 											 FString::Printf(TEXT("Spotted an item!")));
 			UpdateNeededItems();

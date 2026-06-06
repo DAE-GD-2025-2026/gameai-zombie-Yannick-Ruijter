@@ -23,6 +23,11 @@ EBTNodeResult::Type UTakeDistanceFromZombies::ExecuteTask(UBehaviorTreeComponent
 	auto Dir = (Pawn->GetActorLocation() - LocationToAvoid);
 	Dir.Normalize();
 	TargetLocation = (Dir * Distance) + Pawn->GetActorLocation();
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(OwnerComp.GetWorld());
+	FNavLocation ProjectedLocation;
+	if (NavSys && NavSys->ProjectPointToNavigation(TargetLocation, ProjectedLocation, FVector(500.f, 500.f, 500.f)))
+		TargetLocation = ProjectedLocation.Location;
+	AIController->MoveToLocation(TargetLocation, 50.f);
 	return EBTNodeResult::InProgress;
 }
 
@@ -38,6 +43,12 @@ void UTakeDistanceFromZombies::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 	Dir.Normalize();
 	TargetLocation = (Dir * Distance) + SurvivorLocation;
 	
+	//make sure it falls within the navmesh
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(OwnerComp.GetWorld());
+	FNavLocation ProjectedLocation;
+	if (NavSys && NavSys->ProjectPointToNavigation(TargetLocation, ProjectedLocation, FVector(500.f, 500.f, 500.f)))
+		TargetLocation = ProjectedLocation.Location;
+	
 	double distanceSquared{FVector2D::DistSquared(
 		FVector2D{SurvivorLocation}, FVector2D{TargetLocation})
 	};
@@ -49,6 +60,8 @@ void UTakeDistanceFromZombies::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 		auto survivor = Cast<ASurvivorPawn>(Pawn);
 		survivor->StopRunning();
 	};
+	
+	AIController->MoveToLocation(TargetLocation, 50.f);
 }
 
 FString UTakeDistanceFromZombies::GetStaticDescription() const

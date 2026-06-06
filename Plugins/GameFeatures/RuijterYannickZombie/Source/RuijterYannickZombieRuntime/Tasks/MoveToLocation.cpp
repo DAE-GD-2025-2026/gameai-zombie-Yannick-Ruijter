@@ -16,6 +16,10 @@ EBTNodeResult::Type UMoveToLocationTask::ExecuteTask(UBehaviorTreeComponent& Own
 	auto AIController = OwnerComp.GetAIOwner();
 	auto BlackBoard = AIController->GetBlackboardComponent();
 	TargetLocation = BlackBoard->GetValueAsVector(TargetKey);
+	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(OwnerComp.GetWorld());
+	FNavLocation ProjectedLocation;
+	if (NavSys && NavSys->ProjectPointToNavigation(TargetLocation, ProjectedLocation, FVector(500.f, 500.f, 500.f)))
+		TargetLocation = ProjectedLocation.Location;
 	AIController->MoveTo(TargetLocation);
 	return EBTNodeResult::InProgress;
 }

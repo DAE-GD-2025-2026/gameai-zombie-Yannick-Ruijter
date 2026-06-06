@@ -25,10 +25,19 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     FVector GetAverageZombieLocation();
 	ABaseZombie* GetClosestZombie();
+	ABaseItem* GetNeededItem();
+	void UpdateNeededItems();
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 	
 private:
+	UPROPERTY()
 	UBlackboardComponent* BlackboardComponent;
+	UPROPERTY()
+	ASurvivorPawn* SurvivorPawn;
+	UPROPERTY()
+	UInventoryComponent* InventoryComponent;
+	UPROPERTY()
+	TArray<ABaseItem*> PreviousInventory;
 	int CurrentHouseIndex{};
 };

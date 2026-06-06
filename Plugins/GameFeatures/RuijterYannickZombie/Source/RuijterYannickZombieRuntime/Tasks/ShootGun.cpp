@@ -19,6 +19,7 @@ EBTNodeResult::Type UShootGun::ExecuteTask(UBehaviorTreeComponent& OwnerComp, ui
 	auto Inventory = InventoryComponent->GetInventory();
 	for (int i = 0; i < Inventory.Num(); i++)
 	{
+		if (Inventory[i] == nullptr) continue;
 		if (Inventory[i]->GetItemType() == EItemType::Shotgun || Inventory[i]->GetItemType() == EItemType::Pistol)
 		{
 			InventoryComponent->UseItem(i);

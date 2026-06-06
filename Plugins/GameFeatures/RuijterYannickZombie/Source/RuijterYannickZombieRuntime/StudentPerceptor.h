@@ -18,7 +18,7 @@ public:
 	// Sets default values for this component's properties
 	UStudentPerceptor();
 	TArray<ABaseZombie*> ZombiesInRange{};
-	TArray<ABaseItem*> ItemsInSight{};
+	TArray<ABaseItem*> ItemsSpotted{};
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     FVector GetAverageZombieLocation();

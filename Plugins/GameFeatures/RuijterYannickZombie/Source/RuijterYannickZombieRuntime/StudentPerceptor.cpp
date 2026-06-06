@@ -42,9 +42,9 @@ void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	bool ItemSpotted = BlackboardComponent->GetValueAsBool("ItemSpotted");
-	if (!ItemSpotted && ItemsInSight.Num() > 0)
+	if (!ItemSpotted && ItemsSpotted.Num() > 0)
 	{
-		BlackboardComponent->SetValueAsObject("LastSpottedItem", ItemsInSight[0]);
+		BlackboardComponent->SetValueAsObject("LastSpottedItem", ItemsSpotted[0]);
 		BlackboardComponent->SetValueAsBool("ItemSpotted", true);
 	}
 }
@@ -90,7 +90,7 @@ FString::Printf(TEXT("Sensing Damage")));
 		auto Item = Cast<ABaseItem>(Actor);
 		if (Item && Item->GetItemType() != EItemType::Garbage)
 		{
-			ItemsInSight.AddUnique(Item);
+			ItemsSpotted.AddUnique(Item);
 			blackBoard->SetValueAsObject(FName("LastSpottedItem"), Item);
 			blackBoard->SetValueAsBool(FName("ItemSpotted"), true);
 		}
@@ -106,7 +106,7 @@ FString::Printf(TEXT("Sensing Damage")));
 		//if we lost sight of item
 		if (auto Item = Cast<ABaseItem>(Actor))
 		{
-			ItemsInSight.Remove(Item);
+			ItemsSpotted.Remove(Item);
 		}
 	}
 }

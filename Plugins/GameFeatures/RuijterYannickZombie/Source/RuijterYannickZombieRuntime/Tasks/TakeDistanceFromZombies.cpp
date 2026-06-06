@@ -14,10 +14,10 @@ UTakeDistanceFromZombies::UTakeDistanceFromZombies()
 EBTNodeResult::Type UTakeDistanceFromZombies::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	auto AIController = OwnerComp.GetAIOwner();
-	auto Pawn = AIController->GetPawn();
+	auto Pawn = Cast<ASurvivorPawn>(AIController->GetPawn());
 	auto BlackBoard = AIController->GetBlackboardComponent();
 	auto Perceptor = Cast<UStudentPerceptor>(BlackBoard->GetValueAsObject("Perceptor"));
-	
+	Pawn->StartRunning();
 	//gets average location of zombies in neighborhood
 	auto LocationToAvoid = Perceptor->GetAverageZombieLocation();
 	auto Dir = (Pawn->GetActorLocation() - LocationToAvoid);
@@ -44,7 +44,11 @@ void UTakeDistanceFromZombies::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 	
 	//is pickuprange squared :)
 	if (distanceSquared < 1000)
+	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		auto survivor = Cast<ASurvivorPawn>(Pawn);
+		survivor->StopRunning();
+	};
 }
 
 FString UTakeDistanceFromZombies::GetStaticDescription() const

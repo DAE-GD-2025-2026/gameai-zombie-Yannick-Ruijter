@@ -1,6 +1,8 @@
 #include "FaceZombie.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Survivor/SurvivorPawn.h"
+#include "Zombies/BaseZombie.h"
 
 UFaceZombie::UFaceZombie()
 {
@@ -12,7 +14,7 @@ EBTNodeResult::Type UFaceZombie::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 {
 	auto AIController = OwnerComp.GetAIOwner();
 	auto BlackBoard = AIController->GetBlackboardComponent();
-	auto TargetZombie = BlackBoard->GetValueAsObject(ZombieKeyName);
+	auto TargetZombie = Cast<ABaseZombie>(BlackBoard->GetValueAsObject("ClosestEnemy"));
 	AIController->SetFocus(Cast<AActor>(TargetZombie));
 	return EBTNodeResult::Succeeded;
 }

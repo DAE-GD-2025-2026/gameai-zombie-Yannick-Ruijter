@@ -26,7 +26,7 @@ EBTNodeResult::Type UCalculateNextBounds::ExecuteTask(UBehaviorTreeComponent& Ow
 	}
 
 	FHouseBounds Bounds = House->GetBounds();
-	Bounds.Extent *= 1.1;
+	Bounds.Extent *= 1.1; //the bounds might be inside the walls of the house
 	FVector Target;
 
 	if (CurrentStep == 0)

@@ -4,6 +4,7 @@
 #include "StudentPerceptor.h"
 
 #include "AIController.h"
+#include "IDetailTreeNode.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Items/Food.h"
 #include "Items/Medkit.h"
@@ -58,6 +59,23 @@ FVector UStudentPerceptor::GetAverageZombieLocation()
 	return Location;
 }
 
+ABaseZombie* UStudentPerceptor::GetClosestZombie()
+{
+	double ClosestDistance = FLT_MAX;
+	int ClosestIndex = -1;
+	for (int i {0}; i < ZombiesInRange.Num(); i++)
+	{
+		double CurrentDist{(ZombiesInRange[i]->GetActorLocation() - GetOwner()->GetActorLocation()).SquaredLength()};
+		if (CurrentDist < ClosestDistance)
+		{
+			ClosestDistance = CurrentDist;
+			ClosestIndex = i;
+		}
+	}
+	
+	return ZombiesInRange[ClosestIndex];
+}
+
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	GEngine->AddOnScreenDebugMessage(5, 1.f, FColor::Green, 
@@ -86,6 +104,7 @@ FString::Printf(TEXT("Sensing Damage")));
 		{
 			blackBoard->SetValueAsBool("EnemySpotted", true);
 			ZombiesInRange.Add(Zombie);
+			blackBoard->SetValueAsObject("ClosestEnemy", GetClosestZombie());
 		}
 		auto Item = Cast<ABaseItem>(Actor);
 		if (Item && Item->GetItemType() != EItemType::Garbage)

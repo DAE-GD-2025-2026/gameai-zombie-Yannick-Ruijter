@@ -13,8 +13,6 @@ class RUIJTERYANNICKZOMBIERUNTIME_API UFaceZombie : public UBTTaskNode
 
 public:
 	UFaceZombie();
-	UPROPERTY()
-	FName ZombieKeyName;
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual FString GetStaticDescription() const override;
 protected:

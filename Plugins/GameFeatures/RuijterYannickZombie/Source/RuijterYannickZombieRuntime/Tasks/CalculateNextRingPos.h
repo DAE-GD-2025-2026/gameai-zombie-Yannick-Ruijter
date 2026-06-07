@@ -25,4 +25,5 @@ private:
 	float SideLength = 0.f;
 	int32 SidesWalked = 0;
 	FVector2D CurrentDirection = FVector2D(1, 0);
+	FVector CurrentTargetLocation = FVector(0, 0, 0);
 };

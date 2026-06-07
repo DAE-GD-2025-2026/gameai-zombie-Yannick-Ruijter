@@ -66,7 +66,7 @@ void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 	if (BlackboardComponent->GetValueAsBool("SetNextHouse"))
 	{
-		BlackboardComponent->SetValueAsInt("SetNextHouse", false);
+		BlackboardComponent->SetValueAsBool("SetNextHouse", false);
 		AdvanceHouseIndex();
 	}
 }

@@ -14,12 +14,15 @@ EBTNodeResult::Type UCalculateNextRingPos::ExecuteTask(UBehaviorTreeComponent& O
 	AAIController* AIController = OwnerComp.GetAIOwner();
 	UBlackboardComponent* BlackBoard = AIController ? AIController->GetBlackboardComponent() : nullptr;
 	if (!BlackBoard) return EBTNodeResult::Failed;
-	if (!BlackBoard->GetValueAsBool("TargetReached")) return EBTNodeResult::Succeeded;
+	if (!BlackBoard->GetValueAsBool("TargetReached"))
+	{
+		BlackBoard->SetValueAsVector(TargetKey, CurrentTargetLocation);
+		return EBTNodeResult::Succeeded;
+	}
 	BlackBoard->SetValueAsBool("TargetReached", false);
-	FVector Current = BlackBoard->GetValueAsVector(TargetKey);
 
-	Current.X += CurrentDirection.X * SideLength;
-	Current.Y += CurrentDirection.Y * SideLength;
+	CurrentTargetLocation.X += CurrentDirection.X * SideLength;
+	CurrentTargetLocation.Y += CurrentDirection.Y * SideLength;
 
 	CurrentDirection = FVector2D(-CurrentDirection.Y, CurrentDirection.X);
 
@@ -30,10 +33,10 @@ EBTNodeResult::Type UCalculateNextRingPos::ExecuteTask(UBehaviorTreeComponent& O
 	// Project to nearest navmesh point
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(OwnerComp.GetWorld());
 	FNavLocation ProjectedLocation;
-	if (NavSys && NavSys->ProjectPointToNavigation(Current, ProjectedLocation, FVector(500.f, 500.f, 500.f)))
-		Current = ProjectedLocation.Location;
+	if (NavSys && NavSys->ProjectPointToNavigation(CurrentTargetLocation, ProjectedLocation, FVector(500.f, 500.f, 500.f)))
+		CurrentTargetLocation = ProjectedLocation.Location;
 
-	BlackBoard->SetValueAsVector(TargetKey, Current);
+	BlackBoard->SetValueAsVector(TargetKey, CurrentTargetLocation);
 	return EBTNodeResult::Succeeded;
 }
 

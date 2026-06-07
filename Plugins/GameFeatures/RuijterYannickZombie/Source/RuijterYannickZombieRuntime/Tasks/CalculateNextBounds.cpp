@@ -16,41 +16,27 @@ EBTNodeResult::Type UCalculateNextBounds::ExecuteTask(UBehaviorTreeComponent& Ow
 
 	UObject* HouseObject = BlackBoard->GetValueAsObject(LastHouseSpottedKey);
 	AHouse* House = Cast<AHouse>(HouseObject);
-	if (!House) return EBTNodeResult::Failed;
+	if (!House)
+	{
+		BlackBoard->SetValueAsBool("HouseSpotted", false);
+		return EBTNodeResult::Failed;
+	}
 
 	// Reset if the house changed
-	if (House != PreviousHouse)
+	if (House == PreviousHouse)
 	{
-		CurrentStep = 0;
-		PreviousHouse = House;
+		BlackBoard->SetValueAsBool("HouseSpotted", false);
+		return EBTNodeResult::Failed;
 	}
 
 	FHouseBounds Bounds = House->GetBounds();
 	Bounds.Extent *= 1.1; //the bounds might be inside the walls of the house
 	FVector Target;
-
-	if (CurrentStep == 0)
-	{
-		Target = Bounds.Origin;
-	}
-	else
-	{
-		//go to next corner of the house
-		const float X = (CurrentStep == 1 || CurrentStep == 2) ? Bounds.Extent.X : -Bounds.Extent.X;
-		const float Y = (CurrentStep == 1 || CurrentStep == 4) ? Bounds.Extent.Y : -Bounds.Extent.Y;
-		Target = Bounds.Origin + FVector(X, Y, 0);
-	}
+	
+	Target = Bounds.Origin;
+	
 
 	BlackBoard->SetValueAsVector(TargetKey, Target);
-
-	//if we've gone to every corner/center pos
-	CurrentStep++;
-	if (CurrentStep > 4)
-	{
-		CurrentStep = 0;
-		BlackBoard->SetValueAsBool("HouseSpotted", false);
-		return EBTNodeResult::Failed;
-	}
 
 	return EBTNodeResult::Succeeded;
 }

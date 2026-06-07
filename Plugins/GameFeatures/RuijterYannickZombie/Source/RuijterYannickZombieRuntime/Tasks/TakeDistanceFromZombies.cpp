@@ -20,8 +20,7 @@ EBTNodeResult::Type UTakeDistanceFromZombies::ExecuteTask(UBehaviorTreeComponent
 	Pawn->StartRunning();
 	//gets average location of zombies in neighborhood
 	auto LocationToAvoid = Perceptor->GetAverageZombieLocation();
-	auto Dir = (Pawn->GetActorLocation() - LocationToAvoid);
-	Dir.Normalize();
+	auto Dir = GetCurvedFleeDir(Pawn->GetActorLocation(), LocationToAvoid);
 	TargetLocation = (Dir * Distance) + Pawn->GetActorLocation();
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(OwnerComp.GetWorld());
 	FNavLocation ProjectedLocation;
@@ -55,7 +54,7 @@ void UTakeDistanceFromZombies::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 		return;
 	}
 
-	auto Dir = (SurvivorLocation - ZombieLocation).GetSafeNormal();
+	auto Dir = GetCurvedFleeDir(SurvivorLocation, ZombieLocation);
 	TargetLocation = (Dir * Distance) + SurvivorLocation;
 
 	UNavigationSystemV1* NavSys = UNavigationSystemV1::GetCurrent(OwnerComp.GetWorld());
@@ -69,4 +68,13 @@ void UTakeDistanceFromZombies::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 FString UTakeDistanceFromZombies::GetStaticDescription() const
 {
 	return FString::Printf(TEXT("Moves away from nearby zombies"));
+}
+
+FVector UTakeDistanceFromZombies::GetCurvedFleeDir(const FVector& From, const FVector& To)
+{
+	FVector Dir = (From - To).GetSafeNormal();
+	// Perpendicular in the XY plane
+	FVector Perp = FVector(-Dir.Y, Dir.X, 0.f).GetSafeNormal();
+	
+	return (Dir + Perp * 0.4f).GetSafeNormal();
 }

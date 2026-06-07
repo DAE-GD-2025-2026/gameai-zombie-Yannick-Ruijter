@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "Items/BaseItem.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include "PurgeZones/PurgeZone.h"
 #include "Zombies/BaseZombie.h"
 #include "Village/House/House.h"
 #include "StudentPerceptor.generated.h"
@@ -26,6 +27,8 @@ public:
 	TArray<ABaseItem*> ItemsSpotted{};
     UPROPERTY()
 	TArray<AHouse*> HousesSpotted{};
+	UPROPERTY()
+	TArray<APurgeZone*> PurgeZonesSpotted{};
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     FVector GetAverageZombieLocation();

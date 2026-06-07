@@ -69,6 +69,26 @@ void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType,
 		BlackboardComponent->SetValueAsBool("SetNextHouse", false);
 		AdvanceHouseIndex();
 	}
+	
+	if (!BlackboardComponent->GetValueAsBool("InPurgeZone"))
+	{
+		for (int i = PurgeZonesSpotted.Num() - 1; i >= 0; i--)
+		{
+			if (!IsValid(PurgeZonesSpotted[i]))
+			{
+				PurgeZonesSpotted.RemoveAt(i);
+				continue;
+			}
+		
+			auto DistSquared{(PurgeZonesSpotted[i]->GetActorLocation() - GetOwner()->GetActorLocation()).SquaredLength()};
+			if (DistSquared < 150 * 150)
+			{
+				BlackboardComponent->SetValueAsBool("InPurgeZone", true);
+				BlackboardComponent->SetValueAsVector("PurgeZoneLocation", PurgeZonesSpotted[i]->GetActorLocation());
+				break;
+			}
+		}
+	}
 }
 
 FVector UStudentPerceptor::GetAverageZombieLocation()
@@ -187,7 +207,6 @@ ABaseItem* UStudentPerceptor::GetNeededItem()
             }
             if (Weapon->GetValue() > FewestAmmo)
             {
-            	InventoryComponent->RemoveItem(LastWeaponIndex);
 	            return SetSlotAndReturn(Item, LastWeaponIndex);
             }
             break;
@@ -257,32 +276,32 @@ void UStudentPerceptor::UpdateNeededItems()
 
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn) return;
-
-	AAIController* AIController = Cast<AAIController>(OwnerPawn->GetController());
-	if (!AIController) return;
-
-	UBlackboardComponent* blackBoard = AIController->GetBlackboardComponent();
-	if (!blackBoard) return;
 
 	FAISenseID DamageSenseID = UAISense::GetSenseID<UAISense_Damage>();
 	if (Stimulus.WasSuccessfullySensed() && Stimulus.Type == DamageSenseID)
 	{
 		GEngine->AddOnScreenDebugMessage(5, 1.f, FColor::Red,
 		                                 FString::Printf(TEXT("Sensing Damage")));
-		blackBoard->SetValueAsBool("GotDamaged", true);
+		BlackboardComponent->SetValueAsBool("GotDamaged", true);
 	}
 
 	if (Stimulus.WasSuccessfullySensed())
 	{
+		if (auto PurgeZone = Cast<APurgeZone>(Actor))
+		{
+			PurgeZonesSpotted.AddUnique(PurgeZone);
+			BlackboardComponent->SetValueAsBool("PurgeZoneSpotted", true);
+			
+			GEngine->AddOnScreenDebugMessage(55, 1.f, FColor::Red,
+											 FString::Printf(TEXT("Spotted a Purge Zone!")));
+		}
 		if (auto Zombie = Cast<ABaseZombie>(Actor))
 		{
 			CloseZombies.AddUnique(Zombie);
 			if (ZombiesInRange.Contains(Zombie)) return;
-			blackBoard->SetValueAsBool("EnemySpotted", true);
+			BlackboardComponent->SetValueAsBool("EnemySpotted", true);
 			ZombiesInRange.Add(Zombie);
-			blackBoard->SetValueAsObject("ClosestEnemy", GetClosestZombie());
+			BlackboardComponent->SetValueAsObject("ClosestEnemy", GetClosestZombie());
 			
 			GEngine->AddOnScreenDebugMessage(6, 1.f, FColor::Green,
 											 FString::Printf(TEXT("Spotted a zombie!")));
@@ -311,8 +330,8 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 				CycleHouses = true;
 			
 
-			blackBoard->SetValueAsObject("LastSpottedHouse", GetNextHouse());
-			blackBoard->SetValueAsBool("HouseSpotted", GetNextHouse() != nullptr);
+			BlackboardComponent->SetValueAsObject("LastSpottedHouse", GetNextHouse());
+			BlackboardComponent->SetValueAsBool("HouseSpotted", GetNextHouse() != nullptr);
 		}
 	}
 	else
@@ -348,7 +367,11 @@ AHouse* UStudentPerceptor::GetNextHouse() const
 
 void UStudentPerceptor::AdvanceHouseIndex()
 {
-	if (HousesSpotted.IsEmpty() || CurrentHouseIndex >= HousesSpotted.Num()) return;
+	if (HousesSpotted.IsEmpty() || CurrentHouseIndex >= HousesSpotted.Num())
+	{
+		BlackboardComponent->SetValueAsObject("LastSpottedHouse", nullptr);
+		return;
+	}
 	
 	CurrentHouseIndex++;
 	GEngine->AddOnScreenDebugMessage(33, 1.f, FColor::Green,

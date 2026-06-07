@@ -18,4 +18,5 @@ public:
 	virtual FString GetStaticDescription() const override;
 protected:
 	FVector TargetLocation;
+	static FVector GetCurvedFleeDir(const FVector& From, const FVector& To);
 };
